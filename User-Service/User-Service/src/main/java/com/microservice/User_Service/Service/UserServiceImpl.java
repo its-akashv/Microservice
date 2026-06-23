@@ -1,34 +1,53 @@
 package com.microservice.User_Service.Service;
 
+import com.microservice.User_Service.DTO.UserResponse;
 import com.microservice.User_Service.Entity.Address;
+import com.microservice.User_Service.Entity.Order;
 import com.microservice.User_Service.Entity.User;
+import com.microservice.User_Service.Exception.UserNotFoundException;
+import com.microservice.User_Service.InterCommunication.OrderService;
+import com.microservice.User_Service.Mapper.UserMapper;
 import com.microservice.User_Service.Repository.UserRepository;
-import com.microservice.User_Service.Role;
+import com.microservice.User_Service.Enums.Role;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
+    private OrderService orderService;
+    private UserMapper userMapper;
+    private PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+
+    public UserServiceImpl(UserRepository userRepository, OrderService orderService, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.orderService = orderService;
+        this.userMapper = userMapper;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
+
+
+    @Override
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserResponse> userResponseList = new ArrayList<>();
+        for (User user : users) {
+            userResponseList.add(userMapper.toResponse(user));
+        }
+        return userResponseList;
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public User userById(Long id) {
-        return userRepository.findById(id).orElseThrow(()-> new RuntimeException("User not found"));
+    public UserResponse userById(Long id) throws UserNotFoundException{
+        User user =userRepository.findById(id).orElseThrow(()-> new UserNotFoundException());
+        return userMapper.toResponse(user);
     }
 
     @Override
@@ -36,6 +55,7 @@ public class UserServiceImpl implements UserService {
         for (Address address : user.getAddress()) {
             address.setUser(user);
         }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
        User user1= userRepository.save(user);
        return user1;
     }
@@ -86,6 +106,15 @@ public class UserServiceImpl implements UserService {
          userRepository.deleteById(id);
          return "User Deleted Successfully";
     }
+
+    @Override
+    public User getOrdersByUserID(Long id) throws UserNotFoundException{
+        User user = userRepository.findById(id).orElseThrow(()-> new UserNotFoundException("User Doesn't Exist with Id : " +id));
+        List<Order> orders = orderService.getOrdersByUserID(id);
+        user.setOrders(orders);
+        return user;
+    }
+
 
 //    @Override
 //    public User patchUser(Map<String, Object> update, Long id) {

@@ -1,0 +1,35 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: API-GATEWAY
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: USER-SERVICE
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/users,/users/**
+
+            - id: ORDER-SERVICE
+              uri: lb://ORDER-SERVICE
+              predicates:
+                - Path=/orders,/orders/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    gateway:
+      access: unrestricted

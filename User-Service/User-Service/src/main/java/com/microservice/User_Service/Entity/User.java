@@ -2,7 +2,7 @@ package com.microservice.User_Service.Entity;
 
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.microservice.User_Service.Role;
+import com.microservice.User_Service.Enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -38,6 +38,9 @@ public class User {
     @NotNull
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Transient
+    private List<Order> orders;
     @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,mappedBy = "user")
     @JsonManagedReference
     private List<Address> address = new ArrayList<>();

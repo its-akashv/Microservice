@@ -1,21 +1,18 @@
-package com.microservice.User_Service.DTO;
+package com.demo.order.entity;
 
-import com.microservice.User_Service.Entity.Address;
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDTO {
-
+@Data
+public class User {
 
     private String name;
 
     private String email;
 
-    private String password;
-
     private String phone;
 
     private List<Address> address = new ArrayList<>();
-
-
 }
