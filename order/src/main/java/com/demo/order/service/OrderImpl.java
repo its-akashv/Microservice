@@ -1,15 +1,12 @@
 package com.demo.order.service;
 
 
-import java.util.Date;
 import java.util.List;
 
+import com.demo.order.InterCommunication.UserService;
+import com.demo.order.entity.User;
 import org.springframework.stereotype.Service;
-
-import com.demo.order.dto.OrderRequest;
-import com.demo.order.dto.OrderResponse;
 import com.demo.order.entity.Order;
-import com.demo.order.mapper.OrderMapper;
 import com.demo.order.orderEnum.OrderStatus;
 import com.demo.order.repository.OrderRepository;
 
@@ -18,42 +15,42 @@ import com.demo.order.repository.OrderRepository;
 public class OrderImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper;
+    private final UserService userService;
+
 
     public OrderImpl(
-            OrderRepository orderRepository,
-            OrderMapper orderMapper) {
+            OrderRepository orderRepository, UserService userService
+    ) {
 
         this.orderRepository = orderRepository;
-        this.orderMapper = orderMapper;
+
+        this.userService = userService;
     }
 
     // create order
-    public OrderResponse createOrder(OrderRequest request){
+    public Order createOrder(Order order){
 
-        Order order = orderMapper.toEntity(request);
+
         order.setOrderStatus(OrderStatus.CREATED);
-        order.setOrderDate(new Date());
-
+        order.onOrder();
         Order saveOrder = orderRepository.save(order);
-        return orderMapper.toResponse(saveOrder);
+        return saveOrder;
 
     }
 
     //get by id
-    public OrderResponse getOrderById(long id){
+    public Order getOrderById(long id){
         
         Order order = orderRepository.getById(id);
-        return orderMapper.toResponse(order);
+        return order;
 
      }
 
     //get all order 
-    public List<OrderResponse> getAllOrder(){
+    public List<Order> getAllOrder(){
 
         return orderRepository.findAll()
                 .stream()
-                .map(orderMapper:: toResponse)
                 .toList();
 
     }
@@ -68,6 +65,21 @@ public class OrderImpl implements OrderService {
 
         }
 
-     }
+    @Override
+    public List<Order> getOrderByUserId(long userId) {
+        return orderRepository.findByUserId(userId);
+    }
+
+    @Override
+    public Order getUserDataforOrder(long orderid) {
+        Order order=  orderRepository.getById(orderid);
+        //System.out.println(order.getUserId());
+        User user =userService.getUserForOrder(order.getUserId());
+        order.setUser(user);
+
+        return order;
+    }
+
+}
     
 

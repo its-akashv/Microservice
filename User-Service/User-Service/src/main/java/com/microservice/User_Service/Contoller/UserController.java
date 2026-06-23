@@ -1,8 +1,12 @@
 package com.microservice.User_Service.Contoller;
 
+import com.microservice.User_Service.DTO.UserResponse;
+import com.microservice.User_Service.Entity.Order;
 import com.microservice.User_Service.Entity.User;
+import com.microservice.User_Service.Exception.UserNotFoundException;
 import com.microservice.User_Service.Service.UserService;
 import lombok.Getter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,8 +17,10 @@ public class UserController {
 
     private UserService userService;
 
-    public UserController(UserService userService) {
+
+    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+
     }
 
     @PostMapping
@@ -24,12 +30,17 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
 
+    @GetMapping("/user/{id}")
+    public User getOrderByUserID(@PathVariable Long id) throws UserNotFoundException {
+        return userService.getOrdersByUserID(id);
+    }
+
     @GetMapping("/{id}")
-    public User findUserById(@PathVariable Long id){
+    public UserResponse findUserById(@PathVariable Long id) throws UserNotFoundException {
         return userService.userById(id);
     }
 
